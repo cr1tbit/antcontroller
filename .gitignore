@@ -24,3 +24,6 @@ fp-info-cache
 *.dsn
 *.ses
 
+
+secrets.h
+*.bin

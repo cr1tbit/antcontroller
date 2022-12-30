@@ -2,7 +2,6 @@
 // (C) cr1tbit 2023
 
 #include <Wire.h>
-#include <PCA95x5.h>
 
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
@@ -11,20 +10,14 @@
 #include "board_config.h"
 #include "secrets.h"
 
-PCA9555 exp_mosfets;
-PCA9555 exp_relays;
-PCA9555 exp_opto_io;
+#include "ioController.h"
+
 
 #define FW_REV "0.1.0"
 
 AsyncWebServer server(80);
 
-
-typedef enum {
-  PATTERN_NONE,
-  PATTERN_HBEAT,
-  PATTERN_ERR  
-} led_patterns_type_t;
+IoController ioController;
 
 void handle_io_pattern(uint8_t pin){
   static uint32_t pattern_counter = 0;
@@ -43,7 +36,6 @@ void scan_i2c_rail()
   Serial.println ("Scanning I2C rail...");
   byte count = 0;
 
-  Wire.begin();
   for (byte i = 8; i < 120; i++)
   {
     Wire.beginTransmission (i); 
@@ -66,34 +58,38 @@ void IRAM_ATTR input_pins_isr() {
   digitalWrite(PIN_LED_STATUS,~digitalRead(PIN_LED_STATUS));
 }
 
-void initialize_io(){
-  pinMode(PIN_LED_STATUS, OUTPUT);
-  digitalWrite(PIN_LED_STATUS,HIGH);
 
-  Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
-  scan_i2c_rail();
+int analyze_path(String subpath){
+  Serial.println("Analyzing subpath: " + subpath);
+  //schema is /api/<CMD>/<INDEX>/<VALUE>
 
-  exp_mosfets.attach(Wire,0x20);
-  exp_mosfets.polarity(PCA95x5::Polarity::ORIGINAL_ALL);
-  exp_mosfets.direction(PCA95x5::Direction::OUT_ALL);
-  exp_mosfets.write(PCA95x5::Level::L_ALL);
+  int cmd_pos = subpath.indexOf('/');
+  if (cmd_pos < 0){
+    Serial.println("no slashes?");
+    return 404;
+  } else {
+    String command = subpath.substring(0,cmd_pos);
 
-  exp_relays.attach(Wire,0x21);
-  exp_relays.polarity(PCA95x5::Polarity::ORIGINAL_ALL);
-  exp_relays.direction(PCA95x5::Direction::OUT_ALL);
-  exp_relays.write(PCA95x5::Level::L_ALL);
-
-  exp_opto_io.attach(Wire,0x22);
-  exp_opto_io.polarity(PCA95x5::Polarity::ORIGINAL_ALL);
-  exp_opto_io.direction(PCA95x5::Direction::OUT_ALL);
-  exp_opto_io.write(PCA95x5::Level::L_ALL);
-
-  for (int iInput = 0; iInput < input_pins_array_len; iInput++){
-    int current_pin_no = input_pins_array[iInput];
-
-    pinMode(current_pin_no, INPUT_PULLDOWN);
-	  attachInterrupt(current_pin_no, input_pins_isr, CHANGE);
+    int index_pos = subpath.indexOf('/',cmd_pos+1);
+    if (index_pos < 0){
+      // Serial.println("no slashes?");
+      String dummy("");
+      return api_operation(command,-1,dummy);
+    } else {
+      int index = subpath.substring(cmd_pos+1,index_pos).toInt();
+      String value = subpath.substring(index_pos+1);
+      return api_operation(command,index,value);      
+    }  
   }
+}
+
+int api_operation(String& command, int index, String& value){
+  Serial.printf("API call: ");
+  Serial.print(command);
+  Serial.printf("/%d/",index);
+  Serial.println(value);
+
+  return 200;
 }
 
 void initialize_http_server(){
@@ -117,35 +113,67 @@ void initialize_http_server(){
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/index.html", String(), false);
   });
+  server.on("/api", HTTP_GET, [](AsyncWebServerRequest *request){
+    int ret_code = analyze_path(request->url().substring(5));
+    request->send(ret_code, "text/plain", "Request ok");
+  });
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   server.begin();
 }
 
-
-
-
-
-
-void setup()
-{
+void setup(){
   Serial.begin(115200);
+  Serial.println("============================");
   Serial.println("AntController fw rev. "FW_REV);
   Serial.println("Compiled " __DATE__ " " __TIME__);
 
-  initialize_io();
+  pinMode(PIN_LED_STATUS, OUTPUT);
+  digitalWrite(PIN_LED_STATUS,HIGH);
+  pinMode(PIN_BOOT_BUT1, INPUT);
 
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(3000);
-    Serial.println("Connecting to WiFi..");
-  }
-  Serial.println(WiFi.localIP());
+  Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL); 
+  ioController.begin(Wire);
+  ioController.init_inputs(
+    PIN_IN_BUFF_ENA,
+    (const uint8_t*)input_pins_array,
+    input_pins_array_len
+  );
 
-  initialize_http_server();
+  // WiFi.begin(ssid, password);
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(3000);
+  //   Serial.println("Connecting to WiFi..");
+  // }
+  // Serial.println(WiFi.localIP());
+
+  // initialize_http_server();
 }
 
 
+uint16_t t = 0x01;
+
 void loop()
 {
-  handle_io_pattern(PIN_LED_STATUS);
-  delay(100);
+  // handle_io_pattern(PIN_LED_STATUS);
+  // Serial.println("Main loop...");
+
+  // ioController.set_output(RELAY, 0, true);
+  // ioController.set_output(MOSFET, 1, true);
+  // ioController.set_output(OPTO, 2, true);
+  // ioController.set_output(TTL, 3, true);
+
+  t++;
+
+  ioController.set_output_bits(RELAY, t);
+  ioController.set_output_bits(MOSFET, t);
+  ioController.set_output_bits(OPTO, t);
+  ioController.set_output_bits(TTL, t);
+  Serial.printf(
+    "read %04x\n",
+    ioController.get_input_bits()
+  );
+  
+  delay(200);
+
+
 }

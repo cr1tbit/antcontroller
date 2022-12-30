@@ -1,32 +1,30 @@
 #pragma once 
 
-const int EXP_MOS_ADDR = 0x20;
-const int EXP_REL_ADDR = 0x21;
-const int EXP_OPTO_ADDR = 0x22;
-
 const int PIN_I2C_SCL = 4;
 const int PIN_I2C_SDA = 5;
 const int PIN_I2C_RST = 12;
 
-
 // board inputs
 
-const int PIN_INPUT_1 = 14;
-const int PIN_INPUT_2 = 15;
-const int PIN_INPUT_3 = 16;
-const int PIN_INPUT_4 = 17;
+const uint8_t PIN_INPUT_1 = 14;
+const uint8_t PIN_INPUT_2 = 15;
+const uint8_t PIN_INPUT_3 = 16;
+const uint8_t PIN_INPUT_4 = 17;
 
-const int PIN_INPUT_5 = 18;
-const int PIN_INPUT_6 = 19;
-const int PIN_INPUT_7 = 21;
-const int PIN_INPUT_8 = 22;
+const uint8_t PIN_INPUT_5 = 18;
+const uint8_t PIN_INPUT_6 = 19;
+const uint8_t PIN_INPUT_7 = 21;
+const uint8_t PIN_INPUT_8 = 22;
 
-const int PIN_INPUT_9 = 23;
-const int PIN_INPUT_10 = 25;
-const int PIN_INPUT_11 = 26;
-const int PIN_INPUT_12 = 27;
+const uint8_t PIN_INPUT_9 = 23;
+const uint8_t PIN_INPUT_10 = 25;
+const uint8_t PIN_INPUT_11 = 26;
+const uint8_t PIN_INPUT_12 = 27;
 
-const int input_pins_array[] = {
+const uint8_t PIN_IN_BUFF_ENA = 13;
+
+
+const uint8_t input_pins_array[] = {
   PIN_INPUT_1,
   PIN_INPUT_2,
   PIN_INPUT_3,
