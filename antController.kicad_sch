@@ -3266,7 +3266,6 @@
     )
   )
 
-
   (junction (at 187.96 133.35) (diameter 0) (color 0 0 0 0)
     (uuid 07ab82c5-f29c-442f-87c2-88237707ee12)
   )
@@ -4689,8 +4688,8 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 7dda40ae-05cf-444b-a4e4-369e48558799)
   )
-  (text "Wymagania\n\n\n15. Oszacuj pobór prądów 3,3/5V, w razie czego miejsce na radiatory dla stabilizatorów. Policzyć rezystory. \n\n2. BUZ11 TO220, dren w środku\n\n4. drugi PCA steruje 16-toma przekaźnikami (wg. pin-outu przesłanego) poprzez tranzystory bipolarne\n\n5. trzeci PCA dolna ósemka - transoptory, rezystor szeregowy diody 4k7\n\n6. 12 wejść zabezpieczyc filtrem RF R=10k + C=10nF\n\nGniazda DB25 na jednaj krawędzi:\n\nJ1:  Sink1-16 (16pin) + masa (5 pin) + VD (2 pin koło siebie z 100n+1n) + 15V (2 pin koło siebie z 100n+1n)\n\nJ2: 12x styki przekaźników (24 pin) + masa. Pozostałe 4 przekaźniki pozostawimy niepodłączone do gniazd, tylko goldpiny jako zapasowe, np. do podłączenia z J4\n\nJ3: BUFF1-8 + masa cyfrowa + 5V (8pin), 8 wyjść opto (16 pin), masa\n\nJ4: 3x4 wejścia + masy cyfrowe (15 pin) , masa (2 pin), pozostałe 8 pin goldpiny jako zapasowe"
-    (at 297.18 170.18 0)
+  (text "Rev 1.0\n- Initial release\nRev 1.1\nTODO:\n- I2C and TX/RX are swapped on connectors\n- More space for LM317 radiator\n- Screw holes too close to the edge\n- Button descriptors on silk\n- Fix BOM / PnP files (capacitor errors)\n"
+    (at 232.41 124.46 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 814929c3-65c8-420e-8d06-fecdb0699dbd)
   )

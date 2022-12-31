@@ -131,6 +131,7 @@ class IoController {
 
     bool set_output_bits(output_group_type_t group, uint16_t bits){
       
+      bits &= (0xFFFF >> 16-o_group[group].out_num);      
       bits <<= o_group[group].out_offs;
 
       Serial.printf("Write bits %04x on group %d\n\r",bits,(int)group);

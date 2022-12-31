@@ -89,6 +89,10 @@ int api_operation(String& command, int index, String& value){
   Serial.printf("/%d/",index);
   Serial.println(value);
 
+  if (command == "MOSf"){
+    ioController.set_output_bits(MOSFET, index);
+  }
+
   return 200;
 }
 
@@ -139,14 +143,14 @@ void setup(){
     input_pins_array_len
   );
 
-  // WiFi.begin(ssid, password);
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(3000);
-  //   Serial.println("Connecting to WiFi..");
-  // }
-  // Serial.println(WiFi.localIP());
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(3000);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println(WiFi.localIP());
 
-  // initialize_http_server();
+  initialize_http_server();
 }
 
 
@@ -154,7 +158,7 @@ uint16_t t = 0x01;
 
 void loop()
 {
-  // handle_io_pattern(PIN_LED_STATUS);
+  handle_io_pattern(PIN_LED_STATUS);
   // Serial.println("Main loop...");
 
   // ioController.set_output(RELAY, 0, true);
@@ -162,16 +166,16 @@ void loop()
   // ioController.set_output(OPTO, 2, true);
   // ioController.set_output(TTL, 3, true);
 
-  t++;
+  // t++;
 
-  ioController.set_output_bits(RELAY, t);
-  ioController.set_output_bits(MOSFET, t);
-  ioController.set_output_bits(OPTO, t);
-  ioController.set_output_bits(TTL, t);
-  Serial.printf(
-    "read %04x\n",
-    ioController.get_input_bits()
-  );
+  // ioController.set_output_bits(RELAY, t);
+  // ioController.set_output_bits(MOSFET, t);
+  // ioController.set_output_bits(OPTO, t);
+  // ioController.set_output_bits(TTL, t);
+  // Serial.printf(
+  //   "read %04x\n",
+  //   ioController.get_input_bits()
+  // );
   
   delay(200);
 
