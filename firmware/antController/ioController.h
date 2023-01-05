@@ -36,6 +36,13 @@ typedef struct {
   int out_offs;
 } output_group_t;
 
+bool pins_changed = false;
+
+void IRAM_ATTR input_pins_isr() {
+  pins_changed = true;
+  // digitalWrite(PIN_LED_STATUS,~digitalRead(PIN_LED_STATUS));
+}
+
 class IoController {
 
   private:
@@ -50,7 +57,6 @@ class IoController {
       init_expander(&expanders[EXP_RELAYS],  EXP_REL_ADDR );
       init_expander(&expanders[EXP_OPTO_TTL],EXP_OPTO_ADDR);
 
-
       o_group[MOSFET].p_exp = &expanders[EXP_MOSFETS];
       o_group[MOSFET].out_num = 16;
       o_group[MOSFET].out_offs = 0;
@@ -61,14 +67,13 @@ class IoController {
 
       o_group[OPTO].p_exp = &expanders[EXP_OPTO_TTL];
       o_group[OPTO].out_num = 8;
-      o_group[OPTO].out_offs = 0;
+      o_group[OPTO].out_offs = 8;
 
       o_group[TTL].p_exp = &expanders[EXP_OPTO_TTL];
       o_group[TTL].out_num = 8;
-      o_group[TTL].out_offs = 8;
+      o_group[TTL].out_offs = 0;
 
       return RET_OK;
-
     }
 
     ret_code_t init_expander(PCA9555* p_exp, int addr){
@@ -88,7 +93,6 @@ class IoController {
       return RET_ERR;
     }
 
-
   public:
     // IoController(){}
 
@@ -104,11 +108,11 @@ class IoController {
       for (int iInput = 0; iInput < pins_array_len; iInput++){  
         //Serial.printf("p %d!\n\r",(*p_pins_array)[iInput]);              
         pinMode(pins_array[iInput], INPUT_PULLDOWN);
-      // attachInterrupt(current_pin_no, input_pins_isr, CHANGE);
+        attachInterrupt(current_pin_no, input_pins_isr, CHANGE);
       }
 
       pinMode(pin_in_buff_ena,OUTPUT);
-      digitalWrite(pin_in_buff_ena,1);
+      digitalWrite(pin_in_buff_ena,0);
       return RET_OK;
     }
 
@@ -120,7 +124,11 @@ class IoController {
 
       int offs_pin = pin_num + o_group[group].out_offs;
 
-      Serial.printf("Write pin %d on group %d\n\r",offs_pin,(int)group);
+      Serial.printf(
+        "set pin %d %s on group %d\n\r",
+        offs_pin,
+        val ? "on" : "off",
+        (int)group);
 
       o_group[group].p_exp->write(
         (PCA95x5::Port::Port) offs_pin,
@@ -153,53 +161,4 @@ class IoController {
       }
       return res;
     }
-
 };
-
-
-//  scan_i2c_rail();
-
-//   
-
-//   exp_relays.attach(Wire,0x21);
-//   exp_relays.polarity(PCA95x5::Polarity::ORIGINAL_ALL);
-//   exp_relays.direction(PCA95x5::Direction::OUT_ALL);
-//   exp_relays.write(PCA95x5::Level::L_ALL);
-
-//   exp_opto_io.attach(Wire,0x22);
-//   exp_opto_io.polarity(PCA95x5::Polarity::ORIGINAL_ALL);
-//   exp_opto_io.direction(PCA95x5::Direction::OUT_ALL);
-//   exp_opto_io.write(PCA95x5::Level::L_ALL);
-
-// class LED {
-//   private:
-//     int ledPin;
-//     unsigned char ledState;
-
-//   public:
-//     LED(int pin);
-//     void turnON();
-//     void turnOFF();
-//     int getState();
-// };
-
-
-// LED::LED(int pin) {
-//   ledPin   = pin;
-//   ledState = LOW;
-//   pinMode(ledPin, OUTPUT);
-// }
-
-// void LED::turnON() {
-//   ledState = HIGH;
-//   digitalWrite(ledPin, ledState);
-// }
-
-// void LED::turnOFF() {
-//   ledState = LOW;
-//   digitalWrite(ledPin, ledState);
-// }
-
-// int LED::getState() {
-//   return ledState;
-// }

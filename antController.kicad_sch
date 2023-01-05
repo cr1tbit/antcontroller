@@ -4688,7 +4688,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 7dda40ae-05cf-444b-a4e4-369e48558799)
   )
-  (text "Rev 1.0\n- Initial release\nRev 1.1\nTODO:\n- I2C and TX/RX are swapped on connectors\n- More space for LM317 radiator\n- Screw holes too close to the edge\n- Button descriptors on silk\n- Fix BOM / PnP files (capacitor errors)\n"
+  (text "Rev 1.0\n- Initial release\nRev 1.1\nTODO:\n- I2C and TX/RX are swapped on connectors\n- More space for LM317 radiator\n- Screw holes too close to the edge\n- Button descriptors on silk\n- Fix BOM / PnP files (capacitor errors)\n- DTR/RTS lines must not have C filters, only RC is allowed"
     (at 232.41 124.46 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 814929c3-65c8-420e-8d06-fecdb0699dbd)

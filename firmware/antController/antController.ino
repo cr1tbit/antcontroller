@@ -5,7 +5,8 @@
 
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
-#include "SPIFFS.h"
+#include "LittleFS.h"
+#include <SPIFFSEditor.h>
 
 #include "board_config.h"
 #include "secrets.h"
@@ -54,10 +55,6 @@ void scan_i2c_rail()
   Serial.println (" device(s).\n");
 }
 
-void IRAM_ATTR input_pins_isr() {
-  digitalWrite(PIN_LED_STATUS,~digitalRead(PIN_LED_STATUS));
-}
-
 
 int analyze_path(String subpath){
   Serial.println("Analyzing subpath: " + subpath);
@@ -66,7 +63,7 @@ int analyze_path(String subpath){
   int cmd_pos = subpath.indexOf('/');
   if (cmd_pos < 0){
     Serial.println("no slashes?");
-    return 404;
+    return 400;
   } else {
     String command = subpath.substring(0,cmd_pos);
 
@@ -83,27 +80,50 @@ int analyze_path(String subpath){
   }
 }
 
-int api_operation(String& command, int index, String& value){
+int api_operation(String& command, int index, String& value) {
   Serial.printf("API call: ");
   Serial.print(command);
-  Serial.printf("/%d/",index);
+  Serial.printf("/%d/", index);
   Serial.println(value);
 
-  if (command == "MOSf"){
+  if (index < 0){
+    return 400;
+  }
+
+  bool b_value = value.indexOf("on") >= 0 ? true : false;
+
+  if (command == "MOSbits") {
     ioController.set_output_bits(MOSFET, index);
+  } else if (command == "RELbits") {
+    ioController.set_output_bits(RELAY, index);
+  } else if (command == "OPTbits") {
+    ioController.set_output_bits(OPTO, index);
+  } else if (command == "TTLbits") {
+    ioController.set_output_bits(TTL, index);
+  } else if (command == "MOS") {
+    ioController.set_output(MOSFET, index, b_value);
+  } else if (command == "REL") {
+    ioController.set_output(RELAY, index, b_value);
+  } else if (command == "OPT") {
+    ioController.set_output(OPTO, index, b_value);
+  } else if (command == "TTL") {
+    ioController.set_output(TTL, index, b_value);
+  } else {
+    Serial.print("unrecognised command: " + command);
+    return 400;
   }
 
   return 200;
 }
 
 void initialize_http_server(){
-  if(!SPIFFS.begin(true)){
+  if(!LittleFS.begin(false)){
     Serial.println("An Error has occurred while mounting SPIFFS");
     Serial.println("Is filesystem properly generated and uploaded?");
     return;
   } else {
-    Serial.println("SPIFFS initialized. Files:");
-    File root = SPIFFS.open("/");
+    Serial.println("LittleFS initialized. Files:");
+    File root = LittleFS.open("/");
     File file = root.openNextFile();
   
     while(file){
@@ -113,14 +133,17 @@ void initialize_http_server(){
     Serial.println("");
   }
 
-  server.serveStatic("/", SPIFFS, "/");
+  server.serveStatic("/", LittleFS, "/");
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false);
+    request->send(LittleFS, "/index.html", String(), false);
   });
   server.on("/api", HTTP_GET, [](AsyncWebServerRequest *request){
     int ret_code = analyze_path(request->url().substring(5));
     request->send(ret_code, "text/plain", "Request ok");
   });
+
+  server.addHandler(new SPIFFSEditor(LittleFS, "test","test"));
+  
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   server.begin();
 }
@@ -154,30 +177,10 @@ void setup(){
 }
 
 
-uint16_t t = 0x01;
-
 void loop()
 {
-  handle_io_pattern(PIN_LED_STATUS);
-  // Serial.println("Main loop...");
-
-  // ioController.set_output(RELAY, 0, true);
-  // ioController.set_output(MOSFET, 1, true);
-  // ioController.set_output(OPTO, 2, true);
-  // ioController.set_output(TTL, 3, true);
-
-  // t++;
-
-  // ioController.set_output_bits(RELAY, t);
-  // ioController.set_output_bits(MOSFET, t);
-  // ioController.set_output_bits(OPTO, t);
-  // ioController.set_output_bits(TTL, t);
-  // Serial.printf(
-  //   "read %04x\n",
-  //   ioController.get_input_bits()
-  // );
+  handle_io_pattern(PIN_LED_STATUS);  
+  Serial.printf("bits: %04x\n",ioController.get_input_bits());
   
-  delay(200);
-
-
+  delay(500);
 }
