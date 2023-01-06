@@ -43,9 +43,11 @@ void IRAM_ATTR input_pins_isr() {
   // digitalWrite(PIN_LED_STATUS,~digitalRead(PIN_LED_STATUS));
 }
 
-class IoController {
+class IoController_ {
 
   private:
+    IoController_() = default;
+
     TwoWire* _wire;
     PCA9555 expanders[EXP_COUNT];
     output_group_t o_group[OUT_TYPE_COUNT];
@@ -94,7 +96,15 @@ class IoController {
     }
 
   public:
-    // IoController(){}
+
+    //singleton pattern as from https://forum.arduino.cc/t/how-to-write-an-arduino-library-with-a-singleton-object/666625
+    static IoController_ &getInstance(){
+        static IoController_ instance;
+        return instance;
+    }
+
+    IoController_(const IoController_ &) = delete; // no copying
+    IoController_ &operator=(const IoController_ &) = delete;
 
     void begin(TwoWire& wire){
       _wire = &wire;
@@ -108,7 +118,7 @@ class IoController {
       for (int iInput = 0; iInput < pins_array_len; iInput++){  
         //Serial.printf("p %d!\n\r",(*p_pins_array)[iInput]);              
         pinMode(pins_array[iInput], INPUT_PULLDOWN);
-        attachInterrupt(current_pin_no, input_pins_isr, CHANGE);
+        attachInterrupt(iInput, input_pins_isr, CHANGE);
       }
 
       pinMode(pin_in_buff_ena,OUTPUT);
@@ -148,17 +158,21 @@ class IoController {
       return true;
     }
 
-    uint16_t get_input_bits(){
-      uint16_t res = 0;
+    bool get_input_bits(uint16_t* res){
+      *res = 0;
 
       for (int iInput = 0; iInput < pins_array_len; iInput++){
         uint8_t pin_to_read = pins_array[iInput];
         // Serial.printf("read %d!\n\r",pin_to_read);
         if (digitalRead(pin_to_read) == true){
-          Serial.printf("%d ishigh !\n\r",pin_to_read);
-          res |= (uint16_t)0x01<<iInput;
+          // Serial.printf("%d ishigh !\n\r",pin_to_read);
+          *res |= (uint16_t)0x01<<iInput;
         }
       }
-      return res;
+      return true;
     }
 };
+
+IoController_ &IoController = IoController.getInstance();
+
+// extern IoController_ &IoController;
