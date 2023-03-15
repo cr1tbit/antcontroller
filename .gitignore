@@ -27,3 +27,8 @@ fp-info-cache
 
 secrets.h
 *.bin
+
+.pio
+.vscode
+
+
