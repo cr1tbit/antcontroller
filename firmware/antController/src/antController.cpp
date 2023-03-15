@@ -19,6 +19,8 @@
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 
+String api_operation(String& command, int index, String& value, int* ret_code);
+
 void handle_io_pattern(uint8_t pin){
   static uint32_t pattern_counter = 0;
   static uint8_t heartbeat_pattern[] = {1,0,0,1,0,0,0,0,0,0,0,0,0};
@@ -183,7 +185,7 @@ void initialize_http_server(){
 void setup(){
   Serial.begin(115200);
   Serial.println("============================");
-  Serial.println("AntController fw rev. "FW_REV);
+  Serial.println("AntController fw rev. " FW_REV);
   Serial.println("Compiled " __DATE__ " " __TIME__);
 
   pinMode(PIN_LED_STATUS, OUTPUT);
