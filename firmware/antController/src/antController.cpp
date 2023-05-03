@@ -13,6 +13,7 @@
 
 #include "ioController.h"
 
+#include <sstream>
 
 #define FW_REV "0.1.0"
 
@@ -57,28 +58,86 @@ void scan_i2c_rail()
 }
 
 
-String analyze_path(String subpath, int* ret_code){
+
+output_group_type_t get_output_type_by_str(String &type){
+  return MOSFET;
+}
+
+
+String analyze_path(const String &subpath, int* ret_code){
   Serial.println("Analyzing subpath: " + subpath);
   //schema is /api/<CMD>/<INDEX>/<VALUE>
 
-  int cmd_pos = subpath.indexOf('/');
-  if (cmd_pos < 0){
-    *ret_code = 400;
-    return String("no slashes?");
-  } else {
-    String command = subpath.substring(0,cmd_pos);
+  ///api/INP/ <- reads in
+  ///api/MOS/ <- reads out
+  ///api/REL/8/on <- sets state of 8 to high
+  ///api/OPT/bits/ <- reads all bits of a channel
+  /// <- sets all bits of a channel
 
-    int index_pos = subpath.indexOf('/',cmd_pos+1);
-    if (index_pos < 0){
-      String dummy("");
-      return api_operation(command,-1,dummy, ret_code);
-    } else {
-      int index = subpath.substring(cmd_pos+1,index_pos).toInt();
-      String value = subpath.substring(index_pos+1);
-      return api_operation(command,index,value,ret_code);      
-    }  
+  *ret_code = 200;
+
+  output_group_type_t output;
+  int pin_num;
+  uint16_t pin_bits;
+
+  std::vector<String> api_split;
+
+  int delimiterIndex = 0;
+  int previousDelimiterIndex = 0;
+  
+  while ((delimiterIndex = subpath.indexOf("/", previousDelimiterIndex)) != -1) {
+    api_split.push_back(subpath.substring(previousDelimiterIndex, delimiterIndex));
+    previousDelimiterIndex = delimiterIndex + 1;
   }
+  
+  api_split.push_back(subpath.substring(previousDelimiterIndex));
+
+  if (api_split.size() == 0){
+    return "ivnalid API call: " + subpath;
+  }
+  
+  if (api_split.size() == 1) {
+    if (api_split[0] == "INP"){
+      return "input state";
+    } else {
+      return "output state: " + api_split[0];
+      // output = get_output_type_by_str(api_split[1]);
+    }
+  }
+
+  if (api_split.size() >= 2) {
+    // output = get_output_type_by_str(api_split[0]);
+    if (api_split[1]== "bits"){
+      if (api_split.size() == 2) {
+        return "bits state of: " + api_split[0];
+      } else {
+        int pin = api_split[1].toInt();
+        return "pin state of: " +  api_split[0] + " " + String(pin);
+      }
+    }
+  }
+
+
+
+  // int cmd_pos = subpath.indexOf('/');
+  // if (cmd_pos < 0){
+  //   *ret_code = 400;
+  //   return String("no slashes?");
+  // } else {
+  //   String command = subpath.substring(0,cmd_pos);
+
+  //   int index_pos = subpath.indexOf('/',cmd_pos+1);
+  //   if (index_pos < 0){
+  //     String dummy("");
+  //     return api_operation(command,-1,dummy, ret_code);
+  //   } else {
+  //     int index = subpath.substring(cmd_pos+1,index_pos).toInt();
+  //     String value = subpath.substring(index_pos+1);
+  //     return api_operation(command,index,value,ret_code);      
+  //   }  
+  // }
 }
+
 
 String api_operation(String& command, int index, String& value, int* ret_code) {
   Serial.printf("API call: ");
