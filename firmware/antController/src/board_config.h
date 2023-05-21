@@ -23,8 +23,7 @@ const uint8_t PIN_INPUT_12 = 27;
 
 const uint8_t PIN_IN_BUFF_ENA = 13;
 
-
-const uint8_t input_pins_array[] = {
+const std::vector<uint8_t> input_pins = {
   PIN_INPUT_1,
   PIN_INPUT_2,
   PIN_INPUT_3,
@@ -39,52 +38,10 @@ const uint8_t input_pins_array[] = {
   PIN_INPUT_12
 };
 
-const int input_pins_array_len = sizeof(input_pins_array)/sizeof(input_pins_array[0]);
-
 // user interface
 const int PIN_BOOT_BUT1 = 0;
-const int PIN_BUT2 = 33;
+const int PIN_BUT2 = 35;
 const int PIN_BUT3 = 34;
-const int PIN_BUT4 = 35;
+const int PIN_BUT4 = 33;
 
 const int PIN_LED_STATUS = 2;
-
-
-
-// trash
-
-/*
-for (size_t i = 0; i < 16; ++i) {
-    Serial.print("set port high: ");
-    Serial.println(i);
-
-    exp_mosfets.write((PCA95x5::Port::Port)i, PCA95x5::Level::H);
-    exp_relays.write((PCA95x5::Port::Port)i, PCA95x5::Level::H);
-    exp_opto_io.write((PCA95x5::Port::Port)i, PCA95x5::Level::H);
-    // Serial.println(ioex.read(), BIN);
-    delay(500);
-  }
-
-  for (size_t i = 0; i < 16; ++i) {
-    Serial.print("set port low: ");
-    Serial.println(i);
-
-    exp_mosfets.write((PCA95x5::Port::Port)i, PCA95x5::Level::L);
-    exp_relays.write((PCA95x5::Port::Port)i, PCA95x5::Level::L);
-    exp_opto_io.write((PCA95x5::Port::Port)i, PCA95x5::Level::L);
-
-    // Serial.println(ioex.read(), BIN);
-    delay(500);
-  }
-
-
-typedef {
-  int esp_pin_num;
-  uint32_t pin_bitmask;
-  bool is_enabled;
-  const char[20] name_verbose;
-} board_input_t;
-
-
-*/
-
