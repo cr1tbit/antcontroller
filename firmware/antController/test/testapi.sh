@@ -8,10 +8,10 @@ IP=192.168.0.145
 callArray=(
     ""
     "MOS"
-    # "MOS/1"
-    # "MOS/1/on"
-    # "MOS/1/off"
-    # "MOS/bits/"
+    "MOS/1"
+    "MOS/1/on"
+    "MOS/1/off"
+    "MOS/bits/"
     "REL/bits/44"
     "OPT/bits/0"
     "DUPA/bits/0"
@@ -22,7 +22,7 @@ callArray=(
 
 for str in ${callArray[@]}; do
     echo "curl $IP/api/$str"
-    curl $IP/api/$str
-    echo ""
+    # curl $IP/api/$str
+    # echo ""
 done
 

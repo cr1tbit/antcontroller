@@ -97,7 +97,7 @@ class O_group : public IoGroup {
     }
 
     bool set_output(int pin_num, bool val){
-      if (pin_num > out_num){
+      if (pin_num >= out_num){
         return false;
       }
       if (pin_num < 0){
@@ -132,14 +132,16 @@ class O_group : public IoGroup {
     String ioOperation(String parameter, String value){
       bool is_succ = false;
 
-      if (intFromString(parameter) >= 0){
+      int parameter_int_offs = intFromString(parameter);
+      if (parameter_int_offs > 0){
         //handle calls for specific pin
+        parameter_int_offs -= 1;
         if (value.length() == 0){
-          return "OK: " + String(expander->read());
+          return "OK: " + String(expander->read((PCA95x5::Port::Port)parameter_int_offs));
         } else if (value.indexOf("on") >= 0) {
-          is_succ = set_output(intFromString(parameter), true);
+          is_succ = set_output(parameter_int_offs, true);
         } else if (value.indexOf("off") >= 0) {
-          is_succ = set_output(intFromString(parameter), false);
+          is_succ = set_output(parameter_int_offs, false);
         } else {
           return "ERR: invalid value";
         } 
@@ -226,7 +228,7 @@ class IoController_ {
       init_expander(&expanders[EXP_OPTO_TTL],EXP_OPTO_ADDR);
 
       groups.push_back(new O_group("MOS", &expanders[EXP_MOSFETS], 16, 0));
-      groups.push_back(new O_group("REL", &expanders[EXP_RELAYS],  16, 0));
+      groups.push_back(new O_group("REL", &expanders[EXP_RELAYS],  15, 0));
       groups.push_back(new O_group("OPT", &expanders[EXP_OPTO_TTL], 8, 8));
       groups.push_back(new O_group("TTL", &expanders[EXP_OPTO_TTL], 8, 0));
       groups.push_back(new I_group("INP", PIN_IN_BUFF_ENA, &input_pins));
