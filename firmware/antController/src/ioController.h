@@ -71,6 +71,9 @@ class IoGroup {
     }
 
     int intFromString(String& str){
+      if (str.length() == 0){
+        return -1;
+      }
       //check if string contains any non-digit characters
       for (int i = 0; i < str.length(); i++){
         if (!isDigit(str.charAt(i))){
@@ -119,7 +122,11 @@ class O_group : public IoGroup {
       return true;
     }
 
-    bool set_output_bits(output_group_type_t group, uint16_t bits){      
+    bool set_output_bits(output_group_type_t group, uint16_t bits){
+      if (bits > 2^out_num){
+        // bits are out of range
+        return false;
+      }   
       bits &= (0xFFFF >> 16-out_num);      
       bits <<= out_offs;
       bits |= expander->read() & ~(0xFFFF >> 16-out_num << out_offs);
@@ -135,7 +142,7 @@ class O_group : public IoGroup {
       int parameter_int_offs = intFromString(parameter);
       if (parameter_int_offs > 0){
         //handle calls for specific pin
-        parameter_int_offs -= 1;
+        parameter_int_offs -= 1; // we want pin numbering from 1
         if (value.length() == 0){
           return "OK: " + String(expander->read((PCA95x5::Port::Port)parameter_int_offs));
         } else if (value.indexOf("on") >= 0) {

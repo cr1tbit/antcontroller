@@ -15,7 +15,7 @@
 
 #include <sstream>
 
-#define FW_REV "0.2.0"
+#define FW_REV "0.3.0"
 
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
