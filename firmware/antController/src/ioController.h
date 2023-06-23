@@ -122,15 +122,17 @@ class O_group : public IoGroup {
       return true;
     }
 
-    bool set_output_bits(output_group_type_t group, uint16_t bits){
-      if (bits > 2^out_num){
+    bool set_output_bits(uint16_t bits){
+      if (bits > pow(2,out_num)){
         // bits are out of range
+        Serial.printf("Cannot write bits %04x as it exceeds %04x on %s\n\r",
+          bits, 2^out_num, tag.c_str());
         return false;
       }   
       bits &= (0xFFFF >> 16-out_num);      
       bits <<= out_offs;
       bits |= expander->read() & ~(0xFFFF >> 16-out_num << out_offs);
-      Serial.printf("Write bits %04x on group %d\n\r",bits,(int)group);
+      Serial.printf("Write bits %04x on %s\n\r",bits, tag.c_str());
 
       expander->write(bits);
       return true;
@@ -153,11 +155,14 @@ class O_group : public IoGroup {
           return "ERR: invalid value";
         } 
       } else if (parameter == "bits"){
+        if (value.length() == 0){
+          return "OK: " + String(expander->read());
+        }
         int bits = intFromString(value);
         if ((bits < 0)||(bits > 0xFFFF)){
           return "ERR: invalid bits value";
         }
-        is_succ = set_output_bits(MOSFET, (uint16_t)bits);
+        is_succ = set_output_bits((uint16_t)bits);
       } else {
         return "ERR: invalid parameter";
       }
