@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <PCA95x5.h>
 
+#include <vector>
 
 const int EXP_MOS_ADDR = 0x20;
 const int EXP_REL_ADDR = 0x21;
@@ -123,10 +124,11 @@ class O_group : public IoGroup {
     }
 
     bool set_output_bits(uint16_t bits){
-      if (bits > pow(2,out_num)){
+      int bit_range = pow(2,out_num);
+      if (bits > bit_range){
         // bits are out of range
-        Serial.printf("Cannot write bits %04x as it exceeds %04x on %s\n\r",
-          bits, 2^out_num, tag.c_str());
+        Serial.printf("Cannot write bits %04x as it exceeds 0x%04x on %s\n\r",
+          bits, bit_range, tag.c_str());
         return false;
       }   
       bits &= (0xFFFF >> 16-out_num);      
@@ -277,7 +279,7 @@ class IoController_ {
     IoController_(const IoController_ &) = delete; // no copying
     IoController_ &operator=(const IoController_ &) = delete;
 
-    void begin(TwoWire& wire){
+    void begin(TwoWire &wire){
       _wire = &wire;
       init_controller_objects();
     }
